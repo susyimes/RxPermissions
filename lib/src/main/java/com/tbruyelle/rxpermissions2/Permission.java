@@ -1,4 +1,4 @@
-package com.tbruyelle.rxpermissions2;
+package com.ebchina.efamily.launcher.common.util;
 
 import java.util.List;
 

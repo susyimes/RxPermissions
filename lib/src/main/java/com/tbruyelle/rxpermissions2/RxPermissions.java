@@ -12,7 +12,7 @@
  * limitations under the License.
  */
 
-package com.tbruyelle.rxpermissions2;
+package com.ebchina.efamily.launcher.common.util;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
@@ -23,6 +23,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.text.TextUtils;
+
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,7 +38,9 @@ public class RxPermissions {
 
     static final String TAG = RxPermissions.class.getSimpleName();
     static final Object TRIGGER = new Object();
-
+    public static final int GRANTED = 1;
+    public static final int DENIED = 0;
+    public static final int NEVERASK = -1;
     @VisibleForTesting
     Lazy<RxPermissionsFragment> mRxPermissionsFragment;
 
@@ -95,16 +98,16 @@ public class RxPermissions {
      * to ask the user if he allows the permissions.
      */
     @SuppressWarnings("WeakerAccess")
-    public <T> ObservableTransformer<T, Boolean> ensure(final String... permissions) {
-        return new ObservableTransformer<T, Boolean>() {
+    public <T> ObservableTransformer<T, Integer> ensure(final String... permissions) {
+        return new ObservableTransformer<T, Integer>() {
             @Override
-            public ObservableSource<Boolean> apply(Observable<T> o) {
+            public ObservableSource<Integer> apply(Observable<T> o) {
                 return request(o, permissions)
-                        // Transform Observable<Permission> to Observable<Boolean>
+                        // Transform Observable<Permission> to Observable<Integer>
                         .buffer(permissions.length)
-                        .flatMap(new Function<List<Permission>, ObservableSource<Boolean>>() {
+                        .flatMap(new Function<List<Permission>, ObservableSource<Integer>>() {
                             @Override
-                            public ObservableSource<Boolean> apply(List<Permission> permissions) {
+                            public ObservableSource<Integer> apply(List<Permission> permissions) {
                                 if (permissions.isEmpty()) {
                                     // Occurs during orientation change, when the subject receives onComplete.
                                     // In that case we don't want to propagate that empty list to the
@@ -114,10 +117,14 @@ public class RxPermissions {
                                 // Return true if all permissions are granted.
                                 for (Permission p : permissions) {
                                     if (!p.granted) {
-                                        return Observable.just(false);
+                                        if (!p.shouldShowRequestPermissionRationale) {
+                                            return Observable.just(NEVERASK);
+                                        } else {
+                                            return Observable.just(DENIED);
+                                        }
                                     }
                                 }
-                                return Observable.just(true);
+                                return Observable.just(GRANTED);
                             }
                         });
             }
@@ -172,7 +179,7 @@ public class RxPermissions {
      * of your application</b>.
      */
     @SuppressWarnings({"WeakerAccess", "unused"})
-    public Observable<Boolean> request(final String... permissions) {
+    public Observable<Integer> request(final String... permissions) {
         return Observable.just(TRIGGER).compose(ensure(permissions));
     }
 

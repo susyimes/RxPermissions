@@ -1,4 +1,4 @@
-package com.tbruyelle.rxpermissions2;
+package com.ebchina.efamily.launcher.common.util;
 
 import android.annotation.TargetApi;
 import android.content.pm.PackageManager;
@@ -8,6 +8,8 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
+
+
 
 import java.util.HashMap;
 import java.util.Map;
